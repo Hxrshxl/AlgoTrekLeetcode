@@ -2,17 +2,19 @@
 
 import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
-import type { User, Session } from "@supabase/supabase-js"
+import type { User, Session } from "@/lib/supabase/client"
 import { supabase } from "@/lib/supabase/client"
 
 interface AuthContextType {
   user: User | null
   session: Session | null
   loading: boolean
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>
-  signIn: (email: string, password: string) => Promise<{ error: any }>
+  signUp: (email: string, password: string, fullName: string, userType?: "admin" | "user") => Promise<{ error: any }>
+  signIn: (email: string, password: string, userType?: "admin" | "user") => Promise<{ error: any }>
   signOut: () => Promise<void>
   resetPassword: (email: string) => Promise<{ error: any }>
+  isAdmin: () => boolean
+  isUser: () => boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -42,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe()
   }, [])
 
-  const signUp = async (email: string, password: string, fullName: string) => {
+  const signUp = async (email: string, password: string, fullName: string, userType: "admin" | "user" = "user") => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -50,16 +52,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         data: {
           full_name: fullName,
         },
+        userType,
       },
     })
     return { error }
   }
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, userType: "admin" | "user" = "user") => {
+    console.log("Auth context signIn called:", { email, password, userType })
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
+
+    console.log("Supabase signIn result:", { error })
     return { error }
   }
 
@@ -74,6 +81,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error }
   }
 
+  const isAdmin = () => user?.role === "admin"
+  const isUser = () => user?.role === "user"
+
   const value = {
     user,
     session,
@@ -82,6 +92,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signIn,
     signOut,
     resetPassword,
+    isAdmin,
+    isUser,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

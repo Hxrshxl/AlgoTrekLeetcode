@@ -18,8 +18,9 @@ import {
   Star,
 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
-import { AuthModal } from "@/components/auth/auth-modal"
+import { UserAuthModal } from "@/components/auth/user-auth-modal"
 import { UserMenu } from "@/components/auth/user-menu"
+import { AdminAccess } from "@/components/admin-access"
 
 // StatCard Component
 interface StatCardProps {
@@ -484,23 +485,27 @@ const Testimonials = () => {
 // Main Landing Page Component
 export default function AlgoTrekLanding() {
   const statsRef = useRef<HTMLDivElement>(null)
-  const [authModalOpen, setAuthModalOpen] = useState(false)
-  const [authMode, setAuthMode] = useState<"signin" | "signup">("signin")
-  const { user, loading } = useAuth()
+  const [userAuthModalOpen, setUserAuthModalOpen] = useState(false)
+  const [userAuthMode, setUserAuthMode] = useState<"signin" | "signup">("signin")
+  const { user, loading, isAdmin, isUser } = useAuth()
 
   const handleGetStarted = () => {
     if (user) {
-      // Redirect to dashboard or main app
-      console.log("User is authenticated, redirect to dashboard")
+      // Redirect to appropriate dashboard
+      if (isAdmin()) {
+        console.log("Redirect to admin dashboard")
+      } else {
+        console.log("Redirect to user dashboard")
+      }
     } else {
-      setAuthMode("signup")
-      setAuthModalOpen(true)
+      setUserAuthMode("signup")
+      setUserAuthModalOpen(true)
     }
   }
 
-  const handleSignIn = () => {
-    setAuthMode("signin")
-    setAuthModalOpen(true)
+  const handleUserSignIn = () => {
+    setUserAuthMode("signin")
+    setUserAuthModalOpen(true)
   }
 
   if (loading) {
@@ -540,10 +545,16 @@ export default function AlgoTrekLanding() {
                 Pricing
               </a>
               {user ? (
-                <UserMenu />
+                <div className="flex items-center space-x-4">
+                  <span className="text-sm text-gray-600">Welcome, {isAdmin() ? "Admin" : "User"}</span>
+                  <UserMenu />
+                </div>
               ) : (
                 <div className="flex items-center space-x-4">
-                  <button onClick={handleSignIn} className="text-gray-700 hover:text-algotrek-aqua transition-colors">
+                  <button
+                    onClick={handleUserSignIn}
+                    className="text-gray-700 hover:text-algotrek-aqua transition-colors"
+                  >
                     Sign In
                   </button>
                   <button
@@ -592,7 +603,7 @@ export default function AlgoTrekLanding() {
                 className="bg-algotrek-aqua text-algotrek-dark-blue px-8 py-4 rounded-lg font-semibold text-lg hover:bg-algotrek-aqua/90 transition-colors flex items-center"
               >
                 <Rocket className="w-5 h-5 mr-2" />
-                {user ? "Go to Dashboard" : "Start Your Journey"}
+                {user ? (isAdmin() ? "Admin Dashboard" : "User Dashboard") : "Start Your Journey"}
               </button>
               <button className="border-2 border-algotrek-pink text-algotrek-pink px-8 py-4 rounded-lg font-semibold text-lg hover:bg-algotrek-pink hover:text-white transition-colors flex items-center">
                 <PlayCircle className="w-5 h-5 mr-2" />
@@ -783,8 +794,15 @@ export default function AlgoTrekLanding() {
         </div>
       </footer>
 
-      {/* Auth Modal */}
-      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} initialMode={authMode} />
+      {/* Admin Access - Hidden floating button */}
+      <AdminAccess />
+
+      {/* Auth Modals */}
+      <UserAuthModal
+        isOpen={userAuthModalOpen}
+        onClose={() => setUserAuthModalOpen(false)}
+        initialMode={userAuthMode}
+      />
     </div>
   )
 }
