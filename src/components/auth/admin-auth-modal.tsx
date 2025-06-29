@@ -102,7 +102,7 @@ export function AdminAuthModal({ isOpen, onClose, onSuccess }: AdminAuthModalPro
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      placeholder="admin@algotrek.com"
+                      placeholder="admin@gmail.com"
                       required
                     />
                   </div>
