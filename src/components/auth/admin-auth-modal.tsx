@@ -150,9 +150,9 @@ export function AdminAuthModal({ isOpen, onClose, onSuccess }: AdminAuthModalPro
                 <p className="text-yellow-800 text-sm">
                   <strong>Demo Credentials:</strong>
                   <br />
-                  Email: admin@algotrek.com
+                  Email: kya re laale
                   <br />
-                  Password: admin123
+                  Password: password chahiye?
                 </p>
               </div>
             </div>
