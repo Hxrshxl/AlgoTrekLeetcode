@@ -40,11 +40,11 @@ export function DatabaseViewer() {
       const userRecords: UserRecord[] = allUsers.map((user, index) => ({
         id: `user_${index + 1}`,
         email: user.email,
-        role: user.role,
+        role: user.role as "admin" | "user", // Type assertion to fix the error
         user_metadata: user.user_metadata,
         created_at: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
         last_sign_in: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-        status: "active",
+        status: "active" as const,
       }))
 
       setUsers(userRecords)
