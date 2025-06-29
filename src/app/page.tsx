@@ -18,9 +18,9 @@ import {
   Star,
 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
-import { UserAuthModal } from "@/components/auth/user-auth-modal"
 import { UserMenu } from "@/components/auth/user-menu"
 import { AdminAccess } from "@/components/admin-access"
+import { UserAuthModal } from "@/components/auth/user-auth-modal"
 
 // StatCard Component
 interface StatCardProps {
