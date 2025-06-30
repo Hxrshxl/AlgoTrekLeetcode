@@ -11,7 +11,7 @@ export default function SecureAdminDashboard() {
   const router = useRouter()
 
   useEffect(() => {
-    if (!loading && (!user || !isAdmin())) {
+    if (!loading && (!user || !isAdmin)) {
       router.push("/")
     }
   }, [user, loading, isAdmin, router])
@@ -30,7 +30,7 @@ export default function SecureAdminDashboard() {
     )
   }
 
-  if (!user || !isAdmin()) {
+  if (!user || !isAdmin) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
@@ -57,8 +57,10 @@ export default function SecureAdminDashboard() {
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-right">
-                <div className="text-white font-medium">{user.user_metadata?.full_name || "Admin"}</div>
-                <div className="text-gray-400 text-sm">{user.email}</div>
+                <div className="text-white font-medium">
+                  {isAdmin ? "AlgoTrek Admin" : user?.user_metadata?.full_name || "Admin"}
+                </div>
+                <div className="text-gray-400 text-sm">{isAdmin ? "admin@algotrek.com" : user?.email}</div>
               </div>
               <div className="w-10 h-10 rounded-full bg-red-500/20 text-red-400 font-semibold flex items-center justify-center">
                 A
