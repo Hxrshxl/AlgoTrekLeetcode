@@ -2,40 +2,67 @@
 
 import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
-import type { User, Session } from "@/lib/supabase/client"
+import type { User, Session } from "@supabase/supabase-js"
 import { supabase } from "@/lib/supabase/client"
 
 interface AuthContextType {
   user: User | null
   session: Session | null
   loading: boolean
-  signUp: (email: string, password: string, fullName: string, userType?: "admin" | "user") => Promise<{ error: any }>
-  signIn: (email: string, password: string, userType?: "admin" | "user") => Promise<{ error: any }>
+  isAdmin: boolean
+  signUp: (email: string, password: string, userData?: any) => Promise<any>
+  signIn: (email: string, password: string) => Promise<any>
   signOut: () => Promise<void>
-  resetPassword: (email: string) => Promise<{ error: any }>
-  isAdmin: () => boolean
-  isUser: () => boolean
+  adminSignIn: (email: string, password: string) => Promise<boolean>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
+
+// Mock admin credentials
+const ADMIN_CREDENTIALS = {
+  email: "admin@algotrek.com",
+  password: "admin123",
+  userData: {
+    id: "admin-001",
+    email: "admin@algotrek.com",
+    name: "AlgoTrek Admin",
+    role: "admin",
+  },
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const getInitialSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
       setSession(session)
       setUser(session?.user ?? null)
+
+      // Check if admin is logged in from localStorage
+      const adminSession = localStorage.getItem("admin_session")
+      if (adminSession) {
+        const adminData = JSON.parse(adminSession)
+        if (adminData.email === ADMIN_CREDENTIALS.email) {
+          setIsAdmin(true)
+        }
+      }
+
       setLoading(false)
-    })
+    }
+
+    getInitialSession()
 
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
@@ -44,56 +71,73 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe()
   }, [])
 
-  const signUp = async (email: string, password: string, fullName: string, userType: "admin" | "user" = "user") => {
-    const { error } = await supabase.auth.signUp({
+  const signUp = async (email: string, password: string, userData?: any) => {
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: {
-          full_name: fullName,
-        },
-        userType,
+        data: userData,
       },
     })
-    return { error }
+
+    // If signup is successful and user is confirmed, create profile
+    if (data.user && !error) {
+      try {
+        const { error: profileError } = await supabase.from("profiles").insert([
+          {
+            id: data.user.id,
+            email: data.user.email,
+            name: userData?.name || data.user.email,
+          },
+        ])
+
+        if (profileError) {
+          console.error("Error creating profile:", profileError)
+        }
+      } catch (err) {
+        console.error("Profile creation failed:", err)
+      }
+    }
+
+    return { data, error }
   }
 
-  const signIn = async (email: string, password: string, userType: "admin" | "user" = "user") => {
-    console.log("Auth context signIn called:", { email, password, userType })
-
-    const { error } = await supabase.auth.signInWithPassword({
+  const signIn = async (email: string, password: string) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
-
-    console.log("Supabase signIn result:", { error })
-    return { error }
+    return { data, error }
   }
 
   const signOut = async () => {
+    // Clear admin session if exists
+    localStorage.removeItem("admin_session")
+    setIsAdmin(false)
+
+    // Sign out from Supabase
     await supabase.auth.signOut()
   }
 
-  const resetPassword = async (email: string) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    })
-    return { error }
+  const adminSignIn = async (email: string, password: string): Promise<boolean> => {
+    if (email === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
+      // Store admin session in localStorage
+      localStorage.setItem("admin_session", JSON.stringify(ADMIN_CREDENTIALS.userData))
+      setIsAdmin(true)
+      return true
+    }
+    return false
   }
-
-  const isAdmin = () => user?.role === "admin"
-  const isUser = () => user?.role === "user"
 
   const value = {
     user,
     session,
     loading,
+    isAdmin,
     signUp,
     signIn,
     signOut,
-    resetPassword,
-    isAdmin,
-    isUser,
+    adminSignIn,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

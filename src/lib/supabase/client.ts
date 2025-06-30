@@ -1,20 +1,6 @@
-// Mock client for development
-import { supabase as mockSupabase } from "./mock-client"
+import { createClient } from "@supabase/supabase-js"
 
-export type User = {
-  id: string
-  email?: string
-  role?: "admin" | "user"
-  user_metadata?: {
-    full_name?: string
-    [key: string]: any
-  }
-}
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-export type Session = {
-  user: User
-  access_token: string
-}
-
-// Always use mock client for demo purposes
-export const supabase = mockSupabase
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)

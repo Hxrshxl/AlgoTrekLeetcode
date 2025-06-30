@@ -1,21 +1,24 @@
 import type React from "react"
 import type { Metadata } from "next"
+import { Inter } from "next/font/google"
 import "./globals.css"
 import { AuthProvider } from "@/contexts/auth-context"
 
+const inter = Inter({ subsets: ["latin"] })
+
 export const metadata: Metadata = {
-  title: "AlgoTrek - Master Coding Interviews with AI",
-  description: "AI-powered coding interview preparation platform",
+  title: "AlgoTrek - Master Algorithms & Data Structures",
+  description: "Learn algorithms and data structures with interactive tutorials and practice problems.",
 }
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode
-}>) {
+}) {
   return (
     <html lang="en">
-      <body className="antialiased">
+      <body className={inter.className}>
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

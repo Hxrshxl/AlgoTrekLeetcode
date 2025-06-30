@@ -16,11 +16,12 @@ import {
   Award,
   Rocket,
   Star,
+  Shield,
 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { UserMenu } from "@/components/auth/user-menu"
-import { AdminAccess } from "@/components/admin-access"
 import { UserAuthModal } from "@/components/auth/user-auth-modal"
+import { AdminAuthModal } from "@/components/auth/admin-auth-modal"
 
 // StatCard Component
 interface StatCardProps {
@@ -482,29 +483,48 @@ const Testimonials = () => {
   )
 }
 
+// Admin Access Component
+const AdminAccess = () => {
+  const [adminModalOpen, setAdminModalOpen] = useState(false)
+
+  return (
+    <>
+      <button
+        onClick={() => setAdminModalOpen(true)}
+        className="fixed bottom-4 right-4 bg-algotrek-dark-blue text-white p-3 rounded-full shadow-lg hover:bg-algotrek-dark-blue/90 transition-colors z-40"
+        title="Admin Access"
+      >
+        <Shield className="w-5 h-5" />
+      </button>
+      <AdminAuthModal isOpen={adminModalOpen} onClose={() => setAdminModalOpen(false)} />
+    </>
+  )
+}
+
 // Main Landing Page Component
 export default function AlgoTrekLanding() {
   const statsRef = useRef<HTMLDivElement>(null)
   const [userAuthModalOpen, setUserAuthModalOpen] = useState(false)
-  const [userAuthMode, setUserAuthMode] = useState<"signin" | "signup">("signin")
-  const { user, loading, isAdmin, isUser } = useAuth()
+  const [userAuthMode, setUserAuthMode] = useState<"login" | "register">("login")
+
+  const { user, loading, isAdmin } = useAuth()
 
   const handleGetStarted = () => {
-    if (user) {
+    if (user || isAdmin) {
       // Redirect to appropriate dashboard
-      if (isAdmin()) {
-        console.log("Redirect to admin dashboard")
+      if (isAdmin) {
+        window.location.href = "/admin/dashboard"
       } else {
-        console.log("Redirect to user dashboard")
+        window.location.href = "/dashboard"
       }
     } else {
-      setUserAuthMode("signup")
+      setUserAuthMode("register")
       setUserAuthModalOpen(true)
     }
   }
 
   const handleUserSignIn = () => {
-    setUserAuthMode("signin")
+    setUserAuthMode("login")
     setUserAuthModalOpen(true)
   }
 
@@ -544,9 +564,11 @@ export default function AlgoTrekLanding() {
               <a href="#pricing" className="text-gray-700 hover:text-algotrek-aqua transition-colors">
                 Pricing
               </a>
-              {user ? (
+              {user || isAdmin ? (
                 <div className="flex items-center space-x-4">
-                  <span className="text-sm text-gray-600">Welcome, {isAdmin() ? "Admin" : "User"}</span>
+                  <span className="text-sm text-gray-600">
+                    Welcome, {isAdmin ? "Admin" : user?.user_metadata?.name || "User"}
+                  </span>
                   <UserMenu />
                 </div>
               ) : (
@@ -603,7 +625,7 @@ export default function AlgoTrekLanding() {
                 className="bg-algotrek-aqua text-algotrek-dark-blue px-8 py-4 rounded-lg font-semibold text-lg hover:bg-algotrek-aqua/90 transition-colors flex items-center"
               >
                 <Rocket className="w-5 h-5 mr-2" />
-                {user ? (isAdmin() ? "Admin Dashboard" : "User Dashboard") : "Start Your Journey"}
+                {user || isAdmin ? (isAdmin ? "Admin Dashboard" : "User Dashboard") : "Start Your Journey"}
               </button>
               <button className="border-2 border-algotrek-pink text-algotrek-pink px-8 py-4 rounded-lg font-semibold text-lg hover:bg-algotrek-pink hover:text-white transition-colors flex items-center">
                 <PlayCircle className="w-5 h-5 mr-2" />
@@ -709,7 +731,7 @@ export default function AlgoTrekLanding() {
             className="bg-algotrek-aqua text-algotrek-dark-blue px-8 py-4 rounded-lg font-semibold text-lg hover:bg-algotrek-aqua/90 transition-colors flex items-center mx-auto"
           >
             <Star className="w-5 h-5 mr-2" />
-            {user ? "Continue Learning" : "Start Free Trial"}
+            {user || isAdmin ? "Continue Learning" : "Start Free Trial"}
           </motion.button>
         </div>
       </section>
