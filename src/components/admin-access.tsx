@@ -11,7 +11,7 @@ export function AdminAccess() {
   const router = useRouter()
 
   const handleAdminLogin = () => {
-    if (user && isAdmin()) {
+    if (user && isAdmin) {
       // Already logged in as admin, redirect to secure dashboard
       router.push("/admin/8530085300/dashboard")
     } else {
