@@ -20,9 +20,12 @@ export function AdminAccess() {
     }
   }
 
-  const handleAdminLoginSuccess = () => {
+  const handleModalClose = () => {
     setAdminAuthModalOpen(false)
-    router.push("/admin/8530085300/dashboard")
+    // Check if admin login was successful after modal closes
+    if (isAdmin) {
+      router.push("/admin/8530085300/dashboard")
+    }
   }
 
   return (
@@ -44,11 +47,7 @@ export function AdminAccess() {
         </button>
       </div>
 
-      <AdminAuthModal
-        isOpen={adminAuthModalOpen}
-        onClose={() => setAdminAuthModalOpen(false)}
-        onSuccess={handleAdminLoginSuccess}
-      />
+      <AdminAuthModal isOpen={adminAuthModalOpen} onClose={handleModalClose} />
     </>
   )
 }
